@@ -1,13 +1,20 @@
 using UnityEngine;
+using UnityEngine.UI;
 using System.Collections.Generic;
 using System.Collections;
-
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
     // Piece object
     public GameObject player1;
     public GameObject player2;
+
+    // Score Tracker
+    private static int player1Score = 0;
+    public Text player1ScoreText;
+    private static int player2Score = 0;
+    public Text player2ScoreText;
 
     // Win cover for piece
     public GameObject winCircle;
@@ -27,6 +34,13 @@ public class GameManager : MonoBehaviour
 
     // Player's Turn
     bool player1Turn = true;
+
+    // Win Screen show when someone win
+    public GameObject winScreen;
+    public Text winnerText;
+
+    // GameObject to Destroy
+    private List<GameObject> destroyList = new List<GameObject>();
 
     // Save all locations of pieces that been put
     // 0 = empty, 1 = player1's piece, 2 = player2's piece
@@ -58,6 +72,13 @@ public class GameManager : MonoBehaviour
         player1Ghost.SetActive(false);
         player2Ghost.SetActive(false);
 
+        // Make to not show Winner Screen
+        winScreen.SetActive(false);
+
+        // Load Score
+        player1ScoreText.text = "Player 1 : " + player1Score.ToString();
+        player2ScoreText.text = "Player 2 : " + player2Score.ToString();
+
     }
 
     // Update is called once per frame
@@ -71,7 +92,7 @@ public class GameManager : MonoBehaviour
         if (boardState[rowSize - 1, column] == 0) // check if that column is not full
         {
             Vector3 offset = new Vector3(0, 1, 0);
-            if (player1Turn)
+            if (fallingPiece != null && player1Turn)
             {
                 player1Ghost.SetActive(true);
                 player1Ghost.transform.position = spawnLocations[column].transform.position + offset;
@@ -117,7 +138,7 @@ public class GameManager : MonoBehaviour
     {
         player2Ghost.SetActive(false);
         player1Ghost.SetActive(false);
-        if (boardState[rowSize - 1, column] == 0 && fallingPiece.GetComponent<Rigidbody>().linearVelocity == Vector3.zero) // check if that column is not full
+        if (boardState[rowSize - 1, column] == 0 && fallingPiece != null && fallingPiece.GetComponent<Rigidbody>().linearVelocity == Vector3.zero) // check if that column is not full
         {
             Quaternion offset_rotation = Quaternion.Euler(-360, 270, 360);
             if (player1Turn) 
@@ -337,16 +358,50 @@ public class GameManager : MonoBehaviour
                 PrintBoardState();
                 int winner = CheckWinner(row, column, boardState[row, column], position);
                 if (winner != 0) {
+                    fallingPiece = null;
+
+                    // Update Score
+                    if (winner == 1)
+                    {
+                        player1Score += 1;
+                        player1ScoreText.text = "Player 1 : " + player1Score.ToString();
+                    }
+                    else
+                    {
+                        player2Score += 1;
+                        player2ScoreText.text = "Player 2 : " + player2Score.ToString();
+                    }
+
+                    // Show winner
                     Debug.Log("The winner is Player " + winner);
+                    winScreen.SetActive(true);
+                    winnerText.text = "The winner is Player " + winner;
+                    
                     foreach (Vector3 location in winLocation)
                     {
-                        Instantiate(winCircle, location, Quaternion.Euler(-360, 270, 360));
+                        GameObject toDestroy = (GameObject)Instantiate(winCircle, location, Quaternion.Euler(-360, 270, 360));
+                        destroyList.Add(toDestroy);
                     }
                     winLocation.Clear();
                 }
                 return;
             }
         }
+    }
+
+    // Reset Score button function
+    public void ResetScore()
+    {
+        player2Score = player1Score = 0;
+        player1ScoreText.text = "Player 1 : " + player1Score.ToString();
+        player2ScoreText.text = "Player 2 : " + player2Score.ToString();
+
+    }
+
+    // Restart button function
+    public void RestartGame()
+    {
+        SceneManager.LoadScene(0);
     }
 
     // Exit button function
