@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: cc9775a7324a572518d9b8e40126a814
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 199435
+  packageName: Polygon Dining Room
+  packageVersion: 2.2
+  assetPath: Assets/diningRoom/diningRoom/models/decor/bottles/editableMaterial/blackPorcelainBottleMaterial.mat
+  uploadId: 594439

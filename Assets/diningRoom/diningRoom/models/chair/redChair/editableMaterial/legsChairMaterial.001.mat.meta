@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: be80c2b47165b6323b0b98347d304fb1
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 199435
+  packageName: Polygon Dining Room
+  packageVersion: 2.2
+  assetPath: Assets/diningRoom/diningRoom/models/chair/redChair/editableMaterial/legsChairMaterial.001.mat
+  uploadId: 594439
