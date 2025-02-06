@@ -39,9 +39,6 @@ public class GameManager : MonoBehaviour
     public GameObject winScreen;
     public Text winnerText;
 
-    // GameObject to Destroy
-    private List<GameObject> destroyList = new List<GameObject>();
-
     // Save all locations of pieces that been put
     // 0 = empty, 1 = player1's piece, 2 = player2's piece
     /*
@@ -130,8 +127,7 @@ public class GameManager : MonoBehaviour
         Debug.Log("The piece has stopped moving.");
 
         // Update the board state once the piece has stopped
-        Vector3 offset = new Vector3(-0.06f, 0, 0);
-        UpdateBoardState(column, piece.transform.position + offset);
+        UpdateBoardState(column);
     }
 
     public void TakeTurn(int column)
@@ -153,6 +149,7 @@ public class GameManager : MonoBehaviour
                 player1Turn = true;
             }
             StartCoroutine(WaitForPieceToStop(fallingPiece, column));
+            // UpdateBoardState(column);
         }
     }
 
@@ -171,7 +168,7 @@ public class GameManager : MonoBehaviour
     bool IsBoardFull()
     {
         for (int col = 0; col < columnSize; col++) {
-            if (boardState[rowSize - 1, col] != 0)
+            if (boardState[rowSize - 1, col] == 0)
                 return false;
         }
         return true;
@@ -183,20 +180,20 @@ public class GameManager : MonoBehaviour
     y position of piece is the row of array
     z position of piece is column of array
 */
-    int CheckWinner(int pos_row, int pos_column, int player, Vector3 position) 
+    int CheckWinner(int pos_row, int pos_column, int player) 
     {
         int counter;
     
 
         // Vertical
         counter = 1;
-        winLocation.Add(position);
+        winLocation.Add(new Vector3(-0.06f, pos_row, -pos_column));
         for (int i = pos_row - 1; i >= 0; i--) 
         {
             if (boardState[i, pos_column] == player) 
             {
                 // winLocation.Add(position - new Vector3(pos_column - 3, i+1, 0));
-                winLocation.Add(new Vector3(position.x, i, position.z));
+                winLocation.Add(new Vector3(-0.06f, i, -pos_column));
                 counter++;
             }
             else 
@@ -212,13 +209,13 @@ public class GameManager : MonoBehaviour
 
         // Horizontal
         counter = 1;
-        winLocation.Add(position);
+        winLocation.Add(new Vector3(-0.06f, pos_row, -pos_column));
         // left to right
         for (int i = pos_column + 1; i < columnSize; i++) 
         {
             if (boardState[pos_row, i] == player) 
             {
-                winLocation.Add(new Vector3(position.x, position.y, -i));
+                winLocation.Add(new Vector3(-0.06f, pos_row, -i));
                 counter++;
             }
             else 
@@ -236,7 +233,7 @@ public class GameManager : MonoBehaviour
         {
             if (boardState[pos_row, i] == player) 
             {
-                winLocation.Add(new Vector3(position.x, position.y, -i));
+                winLocation.Add(new Vector3(-0.06f, pos_row, -i));
                 counter++;
             }
             else 
@@ -251,7 +248,7 @@ public class GameManager : MonoBehaviour
         winLocation.Clear();
 
         // Positive Diagonal
-        winLocation.Add(position);
+        winLocation.Add(new Vector3(-0.06f, pos_row, -pos_column));
         counter = 1;
         int col = pos_column + 1;
         int row = pos_row + 1;
@@ -259,7 +256,7 @@ public class GameManager : MonoBehaviour
         {
             if (boardState[row, col] == player)
             {
-                winLocation.Add(new Vector3(position.x, row, -col));
+                winLocation.Add(new Vector3(-0.06f, row, -col));
                 counter++;
             }
             else
@@ -280,7 +277,7 @@ public class GameManager : MonoBehaviour
         {
             if (boardState[row, col] == player)
             {
-                winLocation.Add(new Vector3(position.x, row, -col));
+                winLocation.Add(new Vector3(-0.06f, row, -col));
                 counter++;
             }
             else
@@ -297,7 +294,7 @@ public class GameManager : MonoBehaviour
         winLocation.Clear();
 
         // Negative Diagonal
-        winLocation.Add(position);
+        winLocation.Add(new Vector3(-0.06f, pos_row, -pos_column));
         counter = 1;
         col = pos_column + 1;
         row = pos_row - 1;
@@ -305,7 +302,7 @@ public class GameManager : MonoBehaviour
         {
             if (boardState[row, col] == player)
             {
-                winLocation.Add(new Vector3(position.x, row, -col));
+                winLocation.Add(new Vector3(-0.06f, row, -col));
                 counter++;
             }
             else
@@ -326,7 +323,7 @@ public class GameManager : MonoBehaviour
         {
             if (boardState[row, col] == player)
             {
-                winLocation.Add(new Vector3(position.x, row, -col));
+                winLocation.Add(new Vector3(-0.06f, row, -col));
                 counter++;
             }
             else
@@ -345,7 +342,7 @@ public class GameManager : MonoBehaviour
         return 0;
     }
 
-    void UpdateBoardState(int column, Vector3 position) 
+    void UpdateBoardState(int column) 
     {
         for (int row = 0; row < rowSize; row++) {
             if (boardState[row, column] == 0) // if empty
@@ -356,33 +353,41 @@ public class GameManager : MonoBehaviour
                     boardState[row, column] = 2;
                 
                 PrintBoardState();
-                int winner = CheckWinner(row, column, boardState[row, column], position);
-                if (winner != 0) {
-                    fallingPiece = null;
-
-                    // Update Score
-                    if (winner == 1)
-                    {
-                        player1Score += 1;
-                        player1ScoreText.text = "Player 1 : " + player1Score.ToString();
-                    }
-                    else
-                    {
-                        player2Score += 1;
-                        player2ScoreText.text = "Player 2 : " + player2Score.ToString();
-                    }
-
-                    // Show winner
-                    Debug.Log("The winner is Player " + winner);
+                if (IsBoardFull() == true)
+                {
                     winScreen.SetActive(true);
-                    winnerText.text = "The winner is Player " + winner;
-                    
-                    foreach (Vector3 location in winLocation)
-                    {
-                        GameObject toDestroy = (GameObject)Instantiate(winCircle, location, Quaternion.Euler(-360, 270, 360));
-                        destroyList.Add(toDestroy);
+                    winnerText.text = "This round is a draw!";
+                }
+                else
+                {
+                    int winner = CheckWinner(row, column, boardState[row, column]);
+                    if (winner != 0) {
+                        fallingPiece = null;
+
+                        // Update Score
+                        if (winner == 1)
+                        {
+                            player1Score += 1;
+                            player1ScoreText.text = "Player 1 : " + player1Score.ToString();
+                        }
+                        else
+                        {
+                            player2Score += 1;
+                            player2ScoreText.text = "Player 2 : " + player2Score.ToString();
+                        }
+
+                        // Show winner
+                        Debug.Log("The winner is Player " + winner);
+                        winScreen.SetActive(true);
+                        winnerText.text = "The winner is Player " + winner;
+                        
+                        foreach (Vector3 location in winLocation)
+                        {
+                            Instantiate(winCircle, location, Quaternion.Euler(-360, 270, 360));
+                        }
+                        winLocation.Clear();
                     }
-                    winLocation.Clear();
+
                 }
                 return;
             }
