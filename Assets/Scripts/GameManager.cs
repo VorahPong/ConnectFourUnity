@@ -7,6 +7,7 @@ using UnityEngine.SceneManagement;
 public class GameManager : MonoBehaviour
 {
     // Piece object
+    // player 1 = yellow , 2 = red
     public GameObject player1;
     public GameObject player2;
 
@@ -38,6 +39,13 @@ public class GameManager : MonoBehaviour
     // Win Screen show when someone win
     public GameObject winScreen;
     public Text winnerText;
+
+    // sound fx
+    public AudioSource soundSource;
+    public AudioClip fx_click;
+    public AudioClip fx_win;
+    public AudioClip fx_tie;
+
 
     // Save all locations of pieces that been put
     // 0 = empty, 1 = player1's piece, 2 = player2's piece
@@ -84,6 +92,7 @@ public class GameManager : MonoBehaviour
         
     }
 
+    // spawn the ghost piece hovering above the board when player hovering
     public void HoverColumn(int column) 
     {
         if (boardState[rowSize - 1, column] == 0) // check if that column is not full
@@ -100,12 +109,6 @@ public class GameManager : MonoBehaviour
                 player2Ghost.transform.position = spawnLocations[column].transform.position + offset;
             }   
         }
-    }
-
-    public void SelectColumn(int column)
-    {
-        Debug.Log("Column number is " + column);
-        TakeTurn(column);
     }
 
     // wait for piece to stop falling
@@ -130,12 +133,18 @@ public class GameManager : MonoBehaviour
         UpdateBoardState(column);
     }
 
+    // TakeTurn function will spawn player's piece in the column they click and switch turn
     public void TakeTurn(int column)
     {
         player2Ghost.SetActive(false);
         player1Ghost.SetActive(false);
         if (boardState[rowSize - 1, column] == 0 && fallingPiece != null && fallingPiece.GetComponent<Rigidbody>().linearVelocity == Vector3.zero) // check if that column is not full
         {
+            // play sound fx
+            soundSource.clip = fx_click;
+            soundSource.Play();
+
+            // Spawn game piece
             Quaternion offset_rotation = Quaternion.Euler(-360, 270, 360);
             if (player1Turn) 
             {
@@ -149,10 +158,10 @@ public class GameManager : MonoBehaviour
                 player1Turn = true;
             }
             StartCoroutine(WaitForPieceToStop(fallingPiece, column));
-            // UpdateBoardState(column);
         }
     }
 
+    // Print 2D array board for debug purpose
     void PrintBoardState() 
     {
         string num = "\n";
@@ -165,6 +174,7 @@ public class GameManager : MonoBehaviour
         Debug.Log(num);
     }
 
+    // Return true if the board is full
     bool IsBoardFull()
     {
         for (int col = 0; col < columnSize; col++) {
@@ -342,28 +352,34 @@ public class GameManager : MonoBehaviour
         return 0;
     }
 
+    // Update the 2D board when player drop their game piece
     void UpdateBoardState(int column) 
     {
         for (int row = 0; row < rowSize; row++) {
             if (boardState[row, column] == 0) // if empty
             {
-                if (player1Turn)
+                if (!player1Turn)
                     boardState[row, column] = 1;
                 else
                     boardState[row, column] = 2;
                 
-                PrintBoardState();
-                if (IsBoardFull() == true)
+                PrintBoardState(); // print for debug purpose
+                if (IsBoardFull() == true) // check if board is full
                 {
+                    // play sound fx
+                    soundSource.clip = fx_tie;
+                    soundSource.Play();
                     winScreen.SetActive(true);
                     winnerText.text = "This round is a draw!";
                 }
                 else
                 {
-                    int winner = CheckWinner(row, column, boardState[row, column]);
-                    if (winner != 0) {
+                    int winner = CheckWinner(row, column, boardState[row, column]); 
+                    if (winner != 0) { // check winner function
                         fallingPiece = null;
-
+                        // play sound fx
+                        soundSource.clip = fx_win;
+                        soundSource.Play();
                         // Update Score
                         if (winner == 1)
                         {

@@ -9,7 +9,7 @@ public class InputField : MonoBehaviour
     // When mouse is click on the inputField objects
     void OnMouseDown()
     {
-        gm.SelectColumn(column);
+        gm.TakeTurn(column);
     }
 
     // When mouse is hovering over the inputField objects.
