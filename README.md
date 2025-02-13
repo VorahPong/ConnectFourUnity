@@ -26,6 +26,7 @@ OS Requirement:
 	
 	Any computer that is able to build Unity project.
 
+![InformationFlow](https://github.com/user-attachments/assets/a7c399eb-eb27-43ad-8a99-132203b36355)
 
 Developed by:
 
